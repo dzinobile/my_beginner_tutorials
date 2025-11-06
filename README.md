@@ -34,7 +34,7 @@ To create this package, I edited the following files from the tutorials:
 ## Build / Run steps
 1. Clone git repository
 ```bash
-git clone https://github.com/dzinobile/my_beginner_tutorials.git
+git clone https://github.com/dzinobile/my_beginner_tutorials.git && cd my_beginner_tutorials
 ```
 2. Source ROS2, colcon-argcomplete, and colcon_cd
 ```bash
