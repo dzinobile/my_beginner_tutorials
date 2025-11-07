@@ -3,17 +3,13 @@
 <package format="3">
   <name>beginner_tutorials</name>
   <version>0.0.0</version>
-  <description>ENPM700 ROS2 Programming Assignment 1</description>
+  <description>ENPM700 ROS2 Programming Assignment 2</description>
   <maintainer email="dzinobile@gmail.com">Daniel Zinobile</maintainer>
   <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  
-
-
-
-
   <buildtool_depend>rosidl_default_generators</buildtool_depend>
+
   <exec_depend>rosidl_default_runtime</exec_depend>
   <exec_depend>ros2launch</exec_depend>
 

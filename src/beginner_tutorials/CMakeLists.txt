@@ -7,41 +7,38 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
+# generate interfaces
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/FindDifference.srv"
   )
 
+# export dependencies
 ament_export_dependencies(rosidl_default_runtime)
 
-
-
+# add executables for listener and talker
 add_executable(listener src/subscriber_member_function.cpp)
 add_executable(talker src/publisher_member_function.cpp)
 
-
+# target dependencies for listener and talker
 ament_target_dependencies(listener rclcpp std_msgs)
 ament_target_dependencies(talker rclcpp std_msgs)
 
-
+# dependencies for listener and talker
 add_dependencies(listener ${PROJECT_NAME})
 add_dependencies(talker ${PROJECT_NAME})
 
-
-
-
+# install talker, listener, and launch
 install(TARGETS talker listener DESTINATION lib/${PROJECT_NAME})
 install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
 
 rosidl_get_typesupport_target(cpp_typesupport_target 
   ${PROJECT_NAME} rosidl_typesupport_cpp)
 
+# link libraries
 target_link_libraries(talker "${cpp_typesupport_target}")
 target_link_libraries(listener "${cpp_typesupport_target}")
 target_link_libraries( "${cpp_typesupport_target}")
