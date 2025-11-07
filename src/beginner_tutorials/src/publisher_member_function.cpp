@@ -1,4 +1,4 @@
-// Copyright 2016 Open Source Robotics Foundation, Inc.
+// Copyright 2025 Zinobile-Corp LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,59 +11,144 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
+/**
+ * @file publisher_member_function.cpp
+ * @brief Defines MinimalPublisher class for minimal_publisher node
+ * @author Daniel Zinobile
+ * @date 07-Nov-2025
+ */
+#include "beginner_tutorials/srv/find_difference.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "std_msgs/msg/string.hpp"
 #include <chrono>
 #include <functional>
 #include <limits>
 #include <memory>
 #include <string>
 
-#include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/string.hpp"
-
 using namespace std::chrono_literals;
 
-/* This example creates a subclass of Node and uses std::bind() to register a
- * member function as a callback from the timer. */
-
+/**
+ * @class MinimalPublisher
+ * @brief Creates a node that logs sequential fibonacci numbers to INFO_STREAM
+ * and warning messages to the other loggers Also contains a server that
+ * subtracts two given numbers
+ */
 class MinimalPublisher : public rclcpp::Node {
- public:
+public:
+  /**
+   * @brief Constructor for MinimalPublisher class
+   * @param fib_a_ Current fibonacci number
+   * @param fib_b_ Next fibonacci number
+   */
   MinimalPublisher() : Node("minimal_publisher"), fib_a_(0), fib_b_(1) {
+    // Publisher for fibonacci numbers
     publisher_ = this->create_publisher<std_msgs::msg::String>("topic", 10);
+
+    // timer to set publish rate
     timer_ = this->create_wall_timer(
-        500ms, std::bind(&MinimalPublisher::timer_callback, this));
+        500ms, std::bind(&MinimalPublisher::fib_callback, this));
+
+    // Service for subtracting two numbers
+    service_ = this->create_service<beginner_tutorials::srv::FindDifference>(
+        "subtract_two_ints",
+        std::bind(&MinimalPublisher::subtract, this, std::placeholders::_1,
+                  std::placeholders::_2));
   }
 
- private:
+private:
+  /**
+   * @brief Returns current fibonacci number, calculates next, and updates
+   * fib_a_ and fib_b_
+   */
   long long next_fib() {
     long long current = fib_a_;
+
+    // Prevent overflow by restarting from zero once limit is reached
     if (fib_b_ > std::numeric_limits<long long>::max() - fib_a_) {
       fib_a_ = 0;
       fib_b_ = 1;
+      RCLCPP_FATAL_STREAM(this->get_logger(), "Overflow: restarting sequence");
       return current;
     }
 
+    // Update numbers
     long long next = fib_a_ + fib_b_;
     fib_a_ = fib_b_;
     fib_b_ = next;
 
     return current;
   }
-  void timer_callback() {
+  /**
+   * @brief Publishes fibonacci numbers
+   *
+   * Publishes message with fibonacci number to "topic" topic
+   * Logs publishing of message to INFO_STREAM
+   * Logs other messages to different log levels depending on
+   */
+  void fib_callback() {
     auto message = std_msgs::msg::String();
     long long value = next_fib();
     message.data = "Fibonacci sequence: " + std::to_string(value);
-
-    RCLCPP_INFO(this->get_logger(), "Publishing: '%s'", message.data.c_str());
+    // Log publish action to INFO_STREAM
+    RCLCPP_INFO_STREAM(this->get_logger(),
+                       "Publishing: " << message.data.c_str());
+    // Publish message
     publisher_->publish(message);
+
+    // Log message to a certain log level depending on size of fibonacci number
+    if (value < 1000000) {
+      RCLCPP_DEBUG_STREAM(this->get_logger(), "Number less than 1000000000");
+    } else if (value >= 1000000 && value < 1000000000000000) {
+      RCLCPP_WARN_STREAM(this->get_logger(),
+                         "1000000 < Number < 1000000000000000");
+    } else if (1000000000000000 <= value) {
+      RCLCPP_ERROR_STREAM(this->get_logger(),
+                          "Approaching upper limit for int64");
+    }
   }
+  /**
+   * @brief Subtracts two server request numbers and publishes result to "topic"
+   * topic
+   * @param request Request sent to server
+   * @param response Response from server
+   */
+  void subtract(
+      const std::shared_ptr<beginner_tutorials::srv::FindDifference::Request>
+          request,
+      std::shared_ptr<beginner_tutorials::srv::FindDifference::Response>
+          response) {
+
+    // Load server response with difference between requests
+    response->difference = request->b - request->a;
+
+    // Create string message and load with server response
+    std_msgs::msg::String server_message;
+    server_message.data = std::to_string(response->difference);
+
+    // Log activity to INFO
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"),
+                "Incoming request\na: %ld"
+                " b: %ld",
+                request->a, request->b);
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "sending back response: [%ld]",
+                (long int)response->difference);
+
+    // Publish server message to "topic"
+    publisher_->publish(server_message);
+  }
+
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
+  rclcpp::Service<beginner_tutorials::srv::FindDifference>::SharedPtr service_;
   long long fib_a_;
   long long fib_b_;
 };
 
-int main(int argc, char* argv[]) {
+/**
+ * @brief Main function to create and spin node
+ */
+int main(int argc, char *argv[]) {
   rclcpp::init(argc, argv);
   rclcpp::spin(std::make_shared<MinimalPublisher>());
   rclcpp::shutdown();
