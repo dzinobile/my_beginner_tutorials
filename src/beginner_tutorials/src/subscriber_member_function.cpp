@@ -15,6 +15,7 @@
 #include <functional>
 #include <memory>
 
+#include "beginner_tutorials/srv/find_difference.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 
@@ -29,7 +30,8 @@ class MinimalSubscriber : public rclcpp::Node {
 
  private:
   void topic_callback(const std_msgs::msg::String& msg) const {
-    RCLCPP_INFO(this->get_logger(), "I heard: '%s'", msg.data.c_str());
+    // RCLCPP_INFO(this->get_logger(), "I heard: '%s'", msg.data.c_str());
+    RCLCPP_INFO_STREAM(this->get_logger(), "I heard: " << msg.data.c_str());
   }
   rclcpp::Subscription<std_msgs::msg::String>::SharedPtr subscription_;
 };
