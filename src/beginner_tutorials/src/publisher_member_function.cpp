@@ -1,4 +1,4 @@
-// Copyright 2016 Open Source Robotics Foundation, Inc.
+// Copyright 2025 Zinobile-Corp LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -69,14 +69,11 @@ class MinimalPublisher : public rclcpp::Node {
     } else if (value >= 1000000 && value < 1000000000000000) {
       RCLCPP_WARN_STREAM(this->get_logger(),
                          "1000000 < Number < 1000000000000000");
-    }
-
-    else if (1000000000000000 <= value) {
+    } else if (1000000000000000 <= value) {
       RCLCPP_ERROR_STREAM(this->get_logger(),
                           "Approaching upper limit for int64");
     }
   }
-
   void subtract(
       const std::shared_ptr<beginner_tutorials::srv::FindDifference::Request>
           request,

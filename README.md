@@ -1,24 +1,18 @@
-# ENPM 700 ROS2 Programming Assignment 1
+# ENPM 700 ROS2 Programming Assignment 2
 ## Overview
-This assignment is an introduction to creating a package in ROS2. This package called "beginner_tutorials" contains two executables, "listener" and "talker". 
+This assignment builds on the previous assignment by modifying the package for added functionality.
 
-Talker creates a node called "minimal publisher" which publishes std_msgs::msg::String type messages to a topic called "topic". This message is "Fibonacci sequence: x" where x is replaced with subsequent numbers from the fibonacci sequence. When the number becomes large enough to risk overflow with the long long datatype, it restarts from zero. 
+Talker now contains a service called "FindDifference" that finds the difference between two input intergers. It also logs messages at 5 different logging levels. Whenever it publishes a message, it logs its activit at the INFO log level. It also logs a message at another log level that depends on the size of the current fibonacci value: 
+- A DEBUG message is logged when the value is under 1,000,000
+- A WARN message is logged when the value is between 1,000,000 and 1,000,000,000,000,000
+- An ERROR message warning that the number is approaching the overflow limit is logged when the value is over 1,000,000,000,000,000
+- A FATAL message is logged when the overflow limit is reached and the counter sets back to 0
+These messages are all logged using the _STREAM API.
 
-Listener creates a node called "minimal subscriber" which subscribes to the "topic" topic and logs the messages it recieves, which display in the terminal as Info-level log messages. 
+Listener was also updated to log its messages to the _STREAM API.
 
-To create this package, I edited the following files from the tutorials:
+Both nodes can now be launched simultaneously using the newly created launch file.
 
-- publisher_member_function.cpp
-    - Replaced count_ variable with fib_a_ and fib_b
-    - Created next_fib function to return current fibonacci number and calculate next one
-    - Edited message sent in the timer_callback function
-- CMakeLists.txt
-    - Added find_package for rclcpp and stdmsgs
-    - Added add_executable for listener and talker
-    - Added install for listener and talker
-- package.xml
-    - Updated description, maintainer name and license
-    - Added dependencies for rclcpp and stdmsgs
 ## Assumptions
 - Using ROS2 Humble
 ## Dependencies
@@ -47,16 +41,15 @@ source /usr/share/colcon_cd/function/colcon_cd.sh
 colcon build
 source install/setup.bash
 ```
-4. Run listener executable
+4. Launch talker and listener nodes
 ```bash
-ros2 run beginner_tutorials listener
+ros2 launch beginner_tutorials talker_listener.launch.py 
 ```
-5. Open new terminal and navigate to my_beginner_tutorials workspace
-6. Run talker executable
+5. Call service to find difference between numbers
 ```bash
-source install/setup.bash
-ros2 run beginner_tutorials talker
+ros2 service call /subtract_two_ints beginner_tutorials/srv/FindDifference "{a: 3, b: 10}"
 ```
+
 
 
 
