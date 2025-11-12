@@ -53,7 +53,7 @@ public:
 
     // Service for subtracting two numbers
     service_ = this->create_service<beginner_tutorials::srv::FindDifference>(
-        "subtract_two_ints",
+        "subtractTwoInts",
         std::bind(&MinimalPublisher::subtract, this, std::placeholders::_1,
                   std::placeholders::_2));
     
