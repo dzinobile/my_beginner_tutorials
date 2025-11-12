@@ -25,6 +25,8 @@
 #include <limits>
 #include <memory>
 #include <string>
+#include "geometry_msgs/msg/transform_stamped.hpp"
+#include "tf2_ros/transform_broadcaster.h"
 
 using namespace std::chrono_literals;
 
@@ -54,6 +56,9 @@ public:
         "subtract_two_ints",
         std::bind(&MinimalPublisher::subtract, this, std::placeholders::_1,
                   std::placeholders::_2));
+    
+    // Fixed frame broadcaster
+    tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
   }
 
 private:
@@ -106,6 +111,21 @@ private:
       RCLCPP_ERROR_STREAM(this->get_logger(),
                           "Approaching upper limit for int64");
     }
+
+    geometry_msgs::msg::TransformStamped t;
+
+    t.header.stamp = this->get_clock()->now();
+    t.header.frame_id = "world";
+    t.child_frame_id = "talk";
+    t.transform.translation.x = 1.0;
+    t.transform.translation.y = 1.0;
+    t.transform.translation.z = 1.0;
+    t.transform.rotation.x = 0.5;
+    t.transform.rotation.y = 0.0;
+    t.transform.rotation.z = 0.0;
+    t.transform.rotation.w = 0.5;
+
+    tf_broadcaster_->sendTransform(t);
   }
   /**
    * @brief Subtracts two server request numbers and publishes result to "topic"
@@ -141,6 +161,7 @@ private:
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
   rclcpp::Service<beginner_tutorials::srv::FindDifference>::SharedPtr service_;
+  std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
   long long fib_a_;
   long long fib_b_;
 };
