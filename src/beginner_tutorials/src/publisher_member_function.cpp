@@ -45,7 +45,7 @@ public:
    */
   MinimalPublisher() : Node("minimal_publisher"), fib_a_(0), fib_b_(1) {
     // Publisher for fibonacci numbers
-    publisher_ = this->create_publisher<std_msgs::msg::String>("topic", 10);
+    publisher_ = this->create_publisher<std_msgs::msg::String>("chatter", 10);
 
     // timer to set publish rate
     timer_ = this->create_wall_timer(

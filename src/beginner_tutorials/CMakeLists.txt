@@ -14,6 +14,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(catch_ros2 REQUIRED)
 find_package(std_srvs REQUIRED)
+find_package(rosbag2_cpp REQUIRED)
 
 
 
@@ -30,17 +31,20 @@ ament_export_dependencies(rosidl_default_runtime)
 # add executables for listener and talker
 add_executable(listener src/subscriber_member_function.cpp)
 add_executable(talker src/publisher_member_function.cpp)
+add_executable(bag_recorder src/bag_recorder.cpp)
 
 # target dependencies for listener and talker
 ament_target_dependencies(listener rclcpp std_msgs)
 ament_target_dependencies(talker rclcpp std_msgs geometry_msgs tf2_ros)
+ament_target_dependencies(bag_recorder rclcpp rosbag2_cpp std_msgs)
 
 # dependencies for listener and talker
 add_dependencies(listener ${PROJECT_NAME})
 add_dependencies(talker ${PROJECT_NAME})
+add_dependencies(bag_recorder ${PROJECT_NAME})
 
 # install talker, listener, and launch
-install(TARGETS talker listener DESTINATION lib/${PROJECT_NAME})
+install(TARGETS talker listener bag_recorder DESTINATION lib/${PROJECT_NAME})
 install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
 
 rosidl_get_typesupport_target(cpp_typesupport_target 
@@ -49,6 +53,7 @@ rosidl_get_typesupport_target(cpp_typesupport_target
 # link libraries
 target_link_libraries(talker "${cpp_typesupport_target}")
 target_link_libraries(listener "${cpp_typesupport_target}")
+target_link_libraries(bag_recorder "${cpp_typesupport_target}")
 target_link_libraries( "${cpp_typesupport_target}")
 
 if(BUILD_TESTING)
