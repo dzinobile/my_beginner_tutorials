@@ -27,7 +27,7 @@ using std::placeholders::_1;
 
 /**
  * @class MinimalSubscriber
- * @brief Subscriber node that displays messages published to "topic" topic
+ * @brief Subscriber node that displays messages published to "chatter" topic
  */
 class MinimalSubscriber : public rclcpp::Node {
 public:
@@ -36,7 +36,7 @@ public:
    */
   MinimalSubscriber() : Node("minimal_subscriber") {
 
-    // Create subscription to "topic" topic
+    // Create subscription to "chatter" topic
     subscription_ = this->create_subscription<std_msgs::msg::String>(
         "chatter", 10, std::bind(&MinimalSubscriber::topic_callback, this, _1));
 
@@ -47,8 +47,8 @@ public:
 private:
   /**
    * @brief Callback function logs messages to INFO_STREAM based on messages
-   * read from "topic" topic
-   * @param msg Message read from "topic" topic
+   * read from "chatter" topic
+   * @param msg Message read from "chatter" topic
    */
   void topic_callback(const std_msgs::msg::String &msg) {
     // Update string color based on text_color parameter

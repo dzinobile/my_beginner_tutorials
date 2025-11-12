@@ -18,15 +18,16 @@
  * @date 07-Nov-2025
  */
 #include "beginner_tutorials/srv/find_difference.hpp"
+#include "geometry_msgs/msg/transform_stamped.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
+#include "tf2_ros/transform_broadcaster.h"
 #include <chrono>
 #include <functional>
 #include <limits>
 #include <memory>
 #include <string>
-#include "geometry_msgs/msg/transform_stamped.hpp"
-#include "tf2_ros/transform_broadcaster.h"
+#include <tf2/LinearMath/Quaternion.h>
 
 using namespace std::chrono_literals;
 
@@ -56,7 +57,7 @@ public:
         "subtractTwoInts",
         std::bind(&MinimalPublisher::subtract, this, std::placeholders::_1,
                   std::placeholders::_2));
-    
+
     // Fixed frame broadcaster
     tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
   }
@@ -87,7 +88,7 @@ private:
   /**
    * @brief Publishes fibonacci numbers
    *
-   * Publishes message with fibonacci number to "topic" topic
+   * Publishes message with fibonacci number to "chatter" topic
    * Logs publishing of message to INFO_STREAM
    * Logs other messages to different log levels depending on
    */
@@ -111,7 +112,8 @@ private:
       RCLCPP_ERROR_STREAM(this->get_logger(),
                           "Approaching upper limit for int64");
     }
-
+    
+    // static tf frame to be broadcasted
     geometry_msgs::msg::TransformStamped t;
 
     t.header.stamp = this->get_clock()->now();
@@ -120,16 +122,18 @@ private:
     t.transform.translation.x = 1.0;
     t.transform.translation.y = 1.0;
     t.transform.translation.z = 1.0;
-    t.transform.rotation.x = 0.5;
-    t.transform.rotation.y = 0.0;
-    t.transform.rotation.z = 0.0;
-    t.transform.rotation.w = 0.5;
+    tf2::Quaternion q;
+    q.setRPY(1.57, 0, 1.57);
+    t.transform.rotation.x = q.x();;
+    t.transform.rotation.y = q.y();
+    t.transform.rotation.z = q.z();
+    t.transform.rotation.w = q.w();
 
     tf_broadcaster_->sendTransform(t);
   }
   /**
-   * @brief Subtracts two server request numbers and publishes result to "topic"
-   * topic
+   * @brief Subtracts two server request numbers and publishes result to
+   * "chatter" topic
    * @param request Request sent to server
    * @param response Response from server
    */
@@ -154,7 +158,7 @@ private:
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "sending back response: [%ld]",
                 (long int)response->difference);
 
-    // Publish server message to "topic"
+    // Publish server message to "chatter"
     publisher_->publish(server_message);
   }
 

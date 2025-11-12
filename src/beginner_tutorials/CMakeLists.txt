@@ -15,10 +15,8 @@ find_package(tf2_ros REQUIRED)
 find_package(catch_ros2 REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(rosbag2_cpp REQUIRED)
-
-
-
-
+find_package(rcl_interfaces REQUIRED)
+find_package(tf2_msgs REQUIRED)
 
 # generate interfaces
 rosidl_generate_interfaces(${PROJECT_NAME}
@@ -36,7 +34,7 @@ add_executable(bag_recorder src/bag_recorder.cpp)
 # target dependencies for listener and talker
 ament_target_dependencies(listener rclcpp std_msgs)
 ament_target_dependencies(talker rclcpp std_msgs geometry_msgs tf2_ros)
-ament_target_dependencies(bag_recorder rclcpp rosbag2_cpp std_msgs)
+ament_target_dependencies(bag_recorder rclcpp rosbag2_cpp std_msgs rcl_interfaces tf2_msgs)
 
 # dependencies for listener and talker
 add_dependencies(listener ${PROJECT_NAME})
@@ -56,6 +54,7 @@ target_link_libraries(listener "${cpp_typesupport_target}")
 target_link_libraries(bag_recorder "${cpp_typesupport_target}")
 target_link_libraries( "${cpp_typesupport_target}")
 
+# Integration test
 if(BUILD_TESTING)
   # disable these built-in tests
   set(ament_cmake_lint_cmake_FOUND TRUE)

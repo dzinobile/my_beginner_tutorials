@@ -3,7 +3,7 @@
 <package format="3">
   <name>beginner_tutorials</name>
   <version>0.0.0</version>
-  <description>ENPM700 ROS2 Programming Assignment 2</description>
+  <description>ENPM700 ROS2 Programming Assignment 3</description>
   <maintainer email="dzinobile@gmail.com">Daniel Zinobile</maintainer>
   <license>Apache License 2.0</license>
 
@@ -17,6 +17,7 @@
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>tf2_ros</depend>
+  <depend>tf2_msgs</depend>
 
   <member_of_group>rosidl_interface_packages</member_of_group>
 
