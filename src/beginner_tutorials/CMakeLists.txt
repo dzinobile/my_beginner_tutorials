@@ -10,6 +10,13 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(catch_ros2 REQUIRED)
+find_package(std_srvs REQUIRED)
+find_package(rosbag2_cpp REQUIRED)
+find_package(rcl_interfaces REQUIRED)
+find_package(tf2_msgs REQUIRED)
 
 # generate interfaces
 rosidl_generate_interfaces(${PROJECT_NAME}
@@ -22,17 +29,20 @@ ament_export_dependencies(rosidl_default_runtime)
 # add executables for listener and talker
 add_executable(listener src/subscriber_member_function.cpp)
 add_executable(talker src/publisher_member_function.cpp)
+add_executable(bag_recorder src/bag_recorder.cpp)
 
 # target dependencies for listener and talker
 ament_target_dependencies(listener rclcpp std_msgs)
-ament_target_dependencies(talker rclcpp std_msgs)
+ament_target_dependencies(talker rclcpp std_msgs geometry_msgs tf2_ros)
+ament_target_dependencies(bag_recorder rclcpp rosbag2_cpp std_msgs rcl_interfaces tf2_msgs)
 
 # dependencies for listener and talker
 add_dependencies(listener ${PROJECT_NAME})
 add_dependencies(talker ${PROJECT_NAME})
+add_dependencies(bag_recorder ${PROJECT_NAME})
 
 # install talker, listener, and launch
-install(TARGETS talker listener DESTINATION lib/${PROJECT_NAME})
+install(TARGETS talker listener bag_recorder DESTINATION lib/${PROJECT_NAME})
 install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
 
 rosidl_get_typesupport_target(cpp_typesupport_target 
@@ -41,18 +51,49 @@ rosidl_get_typesupport_target(cpp_typesupport_target
 # link libraries
 target_link_libraries(talker "${cpp_typesupport_target}")
 target_link_libraries(listener "${cpp_typesupport_target}")
+target_link_libraries(bag_recorder "${cpp_typesupport_target}")
 target_link_libraries( "${cpp_typesupport_target}")
 
+# Integration test
 if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  # comment the line when a copyright and license is added to all source files
+  # disable these built-in tests
+  set(ament_cmake_lint_cmake_FOUND TRUE)
   set(ament_cmake_copyright_FOUND TRUE)
-  # the following line skips cpplint (only works in a git repo)
-  # comment the line when this package is in a git repo and when
-  # a copyright and license is added to all source files
   set(ament_cmake_cpplint_FOUND TRUE)
-  ament_lint_auto_find_test_dependencies()
+  set(ament_cmake_flake8_FOUND TRUE)
+  set(ament_cmake_uncrustify_FOUND TRUE)
+
+  # build the integration test
+  #######################################################################################
+  # 1.) BUILD AND INSTALL THE INTEGRATION TEST NODE (aka Node that performs the test)  ##
+  #######################################################################################
+  # This is the node in which integration tests occur
+  add_executable(integration_test_node
+    test/integration_test_node.cpp
+    )
+  # The link libraries call this node with "catch_ros2::catch_ros2_with_node_main"
+  # to get the default integration test node main function
+  target_link_libraries(integration_test_node
+    catch_ros2::catch_ros2_with_node_main "${cpp_typesupport_target}"
+    )
+  ament_target_dependencies(integration_test_node
+    rclcpp std_srvs std_msgs
+    )
+  install(TARGETS
+    integration_test_node
+    DESTINATION lib/${PROJECT_NAME}
+  )
+
+  ######################################
+  ## 2.) ADD INTEGRATION TEST SUPPORT ##
+  ######################################
+  # This CMake function allows the integration test to be run
+  # when running "colcon test".
+  catch_ros2_add_integration_test (ExampleIntegration_TestYAML
+    LAUNCH_FILE integration_test.launch.yaml  # example in YAML
+    )
+
+
 endif()
 
 ament_package()

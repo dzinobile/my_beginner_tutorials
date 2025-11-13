@@ -1,17 +1,19 @@
-# ENPM 700 ROS2 Programming Assignment 2
+# ENPM 700 ROS2 Programming Assignment 3
 ## Overview
 This assignment builds on the previous assignment by modifying the package for added functionality.
 
-Talker now contains a service called "FindDifference" that finds the difference between two input intergers. It also logs messages at 5 different logging levels. Whenever it publishes a message, it logs its activit at the INFO log level. It also logs a message at another log level that depends on the size of the current fibonacci value: 
-- A DEBUG_STREAM message is logged when the value is under 1,000,000
-- A WARN_STREAM message is logged when the value is between 1,000,000 and 1,000,000,000,000,000
-- An ERROR_STREAM message warning that the number is approaching the overflow limit is logged when the value is over 1,000,000,000,000,000
-- A FATAL_STREAM message is logged when the overflow limit is reached and the counter sets back to 0
-These messages are all logged using the _STREAM API.
+The talker node now broadcasts a static tf frame called /talk with parent /world with non-zero translation and rotation.
 
-Listener now outputs text in a color determined by the user. The user can put an input argument when running the launch file to change the color to red, green, yellow, blue, or white, with a default value of white.
+A level 2 integration test was created to test the talker node. This test sends integers 7 and 3 to the FindDifference service and confirms the service returns -4. 
 
-Both nodes can now be launched simultaneously using the newly created launch file, which takes an input argument for the text color. The service added to the publisher can be accessed using the command line.
+A new bag recorder node was created by modifying the ros tutorials SimpleBagRecorder example. This node records messages from all 4 topics that are active when the talker node is running:
+- /chatter
+- /parameter_events
+- /rosout
+- /tf
+results are stored in a directory in results called my_bagx, where x is incremented to prevent overwriting previous my_bag directories.
+
+A new launch file launches both the talker node and the bag recorder node. This launch file takes a boolean launch argument flag for "record". If record is set to "false", then the bag recorder node does not launch. 
 
 ## Assumptions
 - Using ROS2 Humble
@@ -22,14 +24,22 @@ Both nodes can now be launched simultaneously using the newly created launch fil
 - limits
 - memory
 - string
+- filesystem
 ### From ROS2
 - rclcpp
-- stdmsgs
+- std_msgs
+- rcl_interfaces
+- tf2_msgs
+- tf2_ros
+- rosbag2_cpp
+- std_srvs
+## Testing
+- catch_ros2
 ### Python
 - launch
 - launch_ros
 ## Build / Run steps
-### Assignment 2 Deliverables
+### TF Frame Broadcast
 1. Clone git repository
 ```bash
 git clone https://github.com/dzinobile/my_beginner_tutorials.git && cd my_beginner_tutorials
@@ -45,34 +55,57 @@ source /usr/share/colcon_cd/function/colcon_cd.sh
 colcon build
 source install/setup.bash
 ```
-4. Launch talker and listener nodes(replace "red" with desired color: red, green, yellow, blue, or white)
+4. Run the talker node
 ```bash
-ros2 launch beginner_tutorials talker_listener.launch.py listener_text_color:=red
+ros2 run beginner_tutorials talker
 ```
-5. From a new terminal, call service to find difference between numbers
-```bash
-source install/setup.bash
-ros2 service call /subtract_two_ints beginner_tutorials/srv/FindDifference "{a: 3, b: 10}"
-```
-### Run Talker and Listener Separately
-1. Complete steps 1-3 above if not already done:
-```bash
-git clone https://github.com/dzinobile/my_beginner_tutorials.git && cd my_beginner_tutorials
-source /opt/ros/humble/setup.bash
-source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash
-source /usr/share/colcon_cd/function/colcon_cd.sh
-colcon build
-source install/setup.bash
-```
-2. Run listener (replace "red" with desired color: red, green, yellow, blue, or white)
-```bash
-ros2 run beginner_tutorials listener --ros-args -p text_color:=red
-```
-3. From a new terminal, run talker at DEBUG log level
+5. In a new terminal, verify the TF frames
 ```bash
 source install/setup.bash
-ros2 run beginner_tutorials talker --ros-args --log-level DEBUG
+ros2 run tf2_ros tf2_echo world talk
 ```
-
-
+6. In a new terminal, use view_frames to create a pdf
+```bash 
+ros2 run tf2_tools view_frames
+```
+### Integration Test
+1. End all running programs and close all but 1 terminal
+2. Run test from command line
+```bash
+colcon test --ctest-args tests integration_test_node
+```
+3. Examine test cases
+```bash
+colcon test-result --all --verbose
+```
+### Bag Recorder
+1. Launch talker and bag recorder
+```bash
+ros2 launch beginner_tutorials bag_recorder.launch.py record:=true
+```
+2. Wait 15 seconds, then press ctrl+c to end program
+3. Run listener node
+```bash
+ros2 run beginner_tutorials listener
+```
+4. In a new terminal, play back bag recording
+```bash
+source install/setup.bash
+ros2 bag play results/my_bag1/
+```
+5. Verify listener begins printing messages from bag
+6. Once bag play ends, remove my_bag1 folder
+```bash
+rm -rf results/my_bag1/
+```
+7. launch talker without bag recorder
+```bash
+ros2 launch beginner_tutorials bag_recorder.launch.py record:=false
+```
+8. Verify listener begins printing messages from talker
+9. Press ctrl + C to end program 
+10. Navigate to results directory and verify a new my_bag folder was NOT created
+```bash
+ls results/
+```
 
