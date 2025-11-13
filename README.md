@@ -11,7 +11,7 @@ A new bag recorder node was created by modifying the ros tutorials SimpleBagReco
 - /parameter_events
 - /rosout
 - /tf
-results are stored in a directory called results/my_bagx, where x is incremented to prevent overwriting previous my_bag directories.
+results are stored in a directory in results called my_bagx, where x is incremented to prevent overwriting previous my_bag directories.
 
 A new launch file launches both the talker node and the bag recorder node. This launch file takes a boolean launch argument flag for "record". If record is set to "false", then the bag recorder node does not launch. 
 
@@ -94,6 +94,18 @@ source install/setup.bash
 ros2 bag play results/my_bag1/
 ```
 5. Verify listener begins printing messages from bag
-6. Once bag play ends, verify record flag 
-
+6. Once bag play ends, remove my_bag1 folder
+```bash
+rm -rf results/my_bag1/
+```
+7. launch talker without bag recorder
+```bash
+ros2 launch beginner_tutorials bag_recorder.launch.py record:=false
+```
+8. Verify listener begins printing messages from talker
+9. Press ctrl + C to end program 
+10. Navigate to results directory and verify a new my_bag folder was NOT created
+```bash
+ls results/
+```
 
